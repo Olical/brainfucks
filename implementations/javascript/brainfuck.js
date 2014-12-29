@@ -65,10 +65,39 @@ var commands = {
  */
 function run(source, initialState) {
     var state = getInitialState();
+    var jumps = matchPairs(source, '[', ']');
 
     while (state.pointers.program < source.length) {
         state.pointers.program += 1;
     }
+}
+
+/**
+ * Finds the paired indexes of an opening and closing character.
+ *
+ * @param {String} source The subject to search through.
+ * @param {String} lhc Left hand opening character. Not the Large Hadron Collider.
+ * @param {String} rhc Right hand closing character.
+ * @return {Object} A map linking indexes of lhc to rhc and rhc to lhc.
+ */
+function matchPairs(source, lhc, rhc) {
+    var pairs = {};
+    var stack = [];
+    var last;
+
+    Array.prototype.forEach.call(source, function (c, index) {
+        if (c === lhc) {
+            stack.push(index);
+        }
+        else if (c === rhc) {
+            last = stack[stack.length - 1];
+            pairs[last] = index;
+            pairs[index] = last;
+            stack.pop();
+        }
+    });
+
+    return pairs;
 }
 
 /**

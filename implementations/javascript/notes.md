@@ -17,7 +17,7 @@ var fs = require('fs');
 var sourceFile = process.argv[2];
 
 if(fs.existsSync(sourceFile)) {
-    var source = fs.readFileSync(sourceFile, 'utf-8');
+    var source = fs.readFileSync(sourceFile, 'utf-8').split();
     console.log(source);
 }
 else {
@@ -75,7 +75,7 @@ function getInitialState() {
 }
 ```
 
-Before I begin implementing the commands (which will be very easy) I want to get the looping right. I have to build some sort of pairing between the left and right hand square braces. If they're unbalanced I'll exit early too.
+Before I begin implementing the commands (which will be very easy) I want to get the looping right. I have to build some sort of pairing between the left and right hand square braces. If they're unbalanced I'll exit early too. So this checks that all of the square braces are balanced and will exit early if not.
 
 ```javascript
 if (isBalanced(source, ['[', ']'])) {
@@ -110,3 +110,53 @@ function countFrequency(source, substring) {
     return source.split(substring).length - 1;
 }
 ```
+
+And this will parse the (definitely balanced) square braces into pairs of indexes using a simple stack mechanism. I've added the output from running the "Hello, World!" though it too.
+
+```javascript
+// This was added to the run function.
+var jumps = matchPairs(source, '[', ']');
+
+/**
+ * Finds the paired indexes of an opening and closing character.
+ *
+ * @param {String} source The subject to search through.
+ * @param {String} lhc Left hand opening character. Not the Large Hadron Collider.
+ * @param {String} rhc Right hand closing character.
+ * @return {Object} A map linking indexes of lhc to rhc and rhc to lhc.
+ */
+function matchPairs(source, lhc, rhc) {
+    var pairs = {};
+    var stack = [];
+    var last;
+
+    Array.prototype.forEach.call(source, function (c, index) {
+        if (c === lhc) {
+            stack.push(index);
+        }
+        else if (c === rhc) {
+            last = stack[stack.length - 1];
+            pairs[last] = index;
+            pairs[index] = last;
+            stack.pop();
+        }
+    });
+
+    return pairs;
+}
+
+{ '0': 417,
+  '112': 136,
+  '136': 112,
+  '369': 377,
+  '377': 369,
+  '417': 0,
+  '460': 1289,
+  '542': 832,
+  '832': 542,
+  '1080': 1082,
+  '1082': 1080,
+  '1289': 460 }
+```
+
+So now I can perform lookups in either direction without walking through the string every time.
