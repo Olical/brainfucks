@@ -5,10 +5,41 @@ var sourceFile = process.argv[2];
 
 if(fs.existsSync(sourceFile)) {
     var source = fs.readFileSync(sourceFile, 'utf-8');
-    run(source);
+
+    if (isBalanced(source, ['[', ']'])) {
+        run(source);
+    }
+    else {
+        console.error('Source has unbalanced square braces.');
+    }
 }
 else {
     console.error('Usage: brainfuck.js [source file]');
+}
+
+/**
+ * Checks if the string has the exact same amount of every string in the delimiters array.
+ *
+ * @param {String} source Subject to validate.
+ * @param {String[]} delimiters Characters to count.
+ * @return {Boolean} True if balanced, false if not.
+ */
+function isBalanced(source, delimiters) {
+    var frequency = delimiters.map(countFrequency.bind(null, source));
+    return frequency.every(function (count) {
+        return count === frequency[0];
+    });
+}
+
+/**
+ * Counts the frequency of a string in a string.
+ *
+ * @param {String} source The thing to look inside.
+ * @param {String} substring The thing to look for.
+ * @return {Number} The amount of times the substring appears.
+ */
+function countFrequency(source, substring) {
+    return source.split(substring).length - 1;
 }
 
 /**
