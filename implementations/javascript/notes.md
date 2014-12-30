@@ -51,7 +51,7 @@ var commands = {
  *
  * @param {String} source A brainfuck application.
  */
-function run(source, initialState) {
+function run(source) {
     var state = getInitialState();
 
     while (state.pointers.program < source.length) {
@@ -159,4 +159,55 @@ function matchPairs(source, lhc, rhc) {
   '1289': 460 }
 ```
 
-So now I can perform lookups in either direction without walking through the string every time.
+So now I can perform lookups in either direction without walking through the string every time. The final and surprisingly easy step is to add the commands. I've also moved the jump list into the state object because this is passed to the command functions.
+
+
+```javascript
+/**
+ * Provides a map between brainfuck commands and the functions that the state should subsequently be applied to.
+ *
+ * @type {Object}
+ */
+var commands = {
+    '>': function (s) {
+        s.pointers.memory += 1;
+
+        if (s.pointers.memory === s.memory.length) {
+            s.memory.push(0);
+        }
+    },
+    '<': function (s) {
+        s.pointers.memory -= 1;
+
+        if (s.pointers.memory === -1) {
+            s.memory.unshift(0);
+            s.pointers.memory = 0;
+        }
+    },
+    '+': function (s) {
+        s.memory[s.pointers.memory] += 1;
+    },
+    '-': function (s) {
+        s.memory[s.pointers.memory] -= 1;
+    },
+    '.': function (s) {
+        var c = String.fromCharCode(s.memory[s.pointers.memory]);
+        process.stdout.write(c);
+    },
+    ',': null,
+    '[': function (s) {
+        if (s.memory[s.pointers.memory] === 0) {
+            s.pointers.program = s.jumps[s.pointers.program];
+        }
+    },
+    ']': function (s) {
+        if (s.memory[s.pointers.memory] !== 0) {
+            s.pointers.program = s.jumps[s.pointers.program];
+        }
+    }
+};
+```
+
+I'm still missing the `,` stdin read command though. I tried to implement it for hours with my current structure but it just won't work in node. Node tries to add callbacks to everything and seems to be allergic to synchronous operations, so I have to come up with an overly complex solution for this. One synchronous call to something like the C `getchar` function would solve all of this elegantly, but node insists on callbacks and promises etc.
+
+So I'm going to have to perform some major rework and add quite a bit of complexity just so I can read this character from stdin.

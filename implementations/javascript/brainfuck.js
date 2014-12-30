@@ -3,19 +3,49 @@
 var fs = require('fs');
 var sourceFile = process.argv[2];
 
-if(fs.existsSync(sourceFile)) {
-    var source = fs.readFileSync(sourceFile, 'utf-8');
+/**
+ * Provides a map between brainfuck commands and the functions that the state should subsequently be applied to.
+ *
+ * @type {Object}
+ */
+var commands = {
+    '>': function (s) {
+        s.pointers.memory += 1;
 
-    if (isBalanced(source, ['[', ']'])) {
-        run(source);
+        if (s.pointers.memory === s.memory.length) {
+            s.memory.push(0);
+        }
+    },
+    '<': function (s) {
+        s.pointers.memory -= 1;
+
+        if (s.pointers.memory === -1) {
+            s.memory.unshift(0);
+            s.pointers.memory = 0;
+        }
+    },
+    '+': function (s) {
+        s.memory[s.pointers.memory] += 1;
+    },
+    '-': function (s) {
+        s.memory[s.pointers.memory] -= 1;
+    },
+    '.': function (s) {
+        var c = String.fromCharCode(s.memory[s.pointers.memory]);
+        process.stdout.write(c);
+    },
+    ',': null,
+    '[': function (s) {
+        if (s.memory[s.pointers.memory] === 0) {
+            s.pointers.program = s.jumps[s.pointers.program];
+        }
+    },
+    ']': function (s) {
+        if (s.memory[s.pointers.memory] !== 0) {
+            s.pointers.program = s.jumps[s.pointers.program];
+        }
     }
-    else {
-        console.error('Source has unbalanced square braces.');
-    }
-}
-else {
-    console.error('Usage: brainfuck.js [source file]');
-}
+};
 
 /**
  * Checks if the string has the exact same amount of every string in the delimiters array.
@@ -43,31 +73,21 @@ function countFrequency(source, substring) {
 }
 
 /**
- * Provides a map between brainfuck commands and the functions that the state should subsequently be applied to.
- *
- * @type {Object}
- */
-var commands = {
-    '>': null,
-    '<': null,
-    '+': null,
-    '-': null,
-    '.': null,
-    ',': null,
-    '[': null,
-    ']': null
-};
-
-/**
  * Executes brainfuck source. Will pull from stdin and print to stdout where required. Here be side effects.
  *
  * @param {String} source A brainfuck application.
  */
-function run(source, initialState) {
-    var state = getInitialState();
-    var jumps = matchPairs(source, '[', ']');
+function run(source) {
+    var state = getInitialState(source);
+    var command;
 
     while (state.pointers.program < source.length) {
+        command = commands[source[state.pointers.program]];
+
+        if (typeof command === 'function') {
+            command(state);
+        }
+
         state.pointers.program += 1;
     }
 }
@@ -103,14 +123,30 @@ function matchPairs(source, lhc, rhc) {
 /**
  * Constructs the initial state object.
  *
+ * @param {String} source To find the jump pairs with.
  * @return {Object}
  */
-function getInitialState() {
+function getInitialState(source) {
     return {
-        memory: [],
+        jumps: matchPairs(source, '[', ']'),
+        memory: [0],
         pointers: {
             program: 0,
             memory: 0
         }
     };
+}
+
+if(fs.existsSync(sourceFile)) {
+    var source = fs.readFileSync(sourceFile, 'utf-8');
+
+    if (isBalanced(source, ['[', ']'])) {
+        run(source);
+    }
+    else {
+        console.error('Source has unbalanced square braces.');
+    }
+}
+else {
+    console.error('Usage: brainfuck.js [source file]');
 }
