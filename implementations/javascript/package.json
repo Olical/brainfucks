@@ -1,0 +1,18 @@
+{
+  "name": "brainfuck",
+  "version": "1.0.0",
+  "description": "This is the JavaScript reference implementation of my brainfuck interpreters.",
+  "main": "brainfuck.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Oliver Caldwell",
+  "license": "Unlicense",
+  "dependencies": {
+    "async": "^0.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Wolfy87/EventEmitter.git"
+  }
+}

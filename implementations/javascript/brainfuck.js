@@ -1,7 +1,13 @@
 #!/usr/bin/env node
 
 var fs = require('fs');
+var async = require('async');
 var sourceFile = process.argv[2];
+
+// To allow stdin input.
+process.stdin.setRawMode(true);
+process.stdin.resume();
+process.stdin.setEncoding('utf8');
 
 /**
  * Provides a map between brainfuck commands and the functions that the state should subsequently be applied to.
@@ -34,7 +40,12 @@ var commands = {
         var c = String.fromCharCode(s.memory[s.pointers.memory]);
         process.stdout.write(c);
     },
-    ',': null,
+    ',': function (s, callback) {
+        process.stdin.once('data', function (key) {
+            s.memory[s.pointers.memory] = key.charCodeAt(0);
+            callback();
+        });
+    },
     '[': function (s) {
         if (s.memory[s.pointers.memory] === 0) {
             s.pointers.program = s.jumps[s.pointers.program];
@@ -81,15 +92,27 @@ function run(source) {
     var state = getInitialState(source);
     var command;
 
-    while (state.pointers.program < source.length) {
+    function isProgramPointerInBounds() {
+        return state.pointers.program < source.length;
+    }
+
+    function step(callback) {
         command = commands[source[state.pointers.program]];
 
         if (typeof command === 'function') {
-            command(state);
+            command(state, callback);
         }
 
         state.pointers.program += 1;
+
+        if (!command || command.length < 2) {
+            setImmediate(callback);
+        }
     }
+
+    function complete() {}
+
+    async.whilst(isProgramPointerInBounds, step, complete);
 }
 
 /**

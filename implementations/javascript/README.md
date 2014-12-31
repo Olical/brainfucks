@@ -1,1 +1,1 @@
-This is the JavaScript reference implementation of my brainfuck interpreters.
+This is the JavaScript reference implementation of my brainfuck interpreters. I encountered issues later on with async calls, so I added a dependency to maintain my sanity. This means you need to run `npm install` before you can use `brainfuck.js`.

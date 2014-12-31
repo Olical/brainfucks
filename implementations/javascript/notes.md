@@ -211,3 +211,50 @@ var commands = {
 I'm still missing the `,` stdin read command though. I tried to implement it for hours with my current structure but it just won't work in node. Node tries to add callbacks to everything and seems to be allergic to synchronous operations, so I have to come up with an overly complex solution for this. One synchronous call to something like the C `getchar` function would solve all of this elegantly, but node insists on callbacks and promises etc.
 
 So I'm going to have to perform some major rework and add quite a bit of complexity just so I can read this character from stdin.
+
+After investigation, async#whilst looks like the solution, but have to add a dependency. https://github.com/caolan/async#whilst
+
+```javascript
+{
+    ',': function (s, callback) {
+        process.stdin.once('data', function (key) {
+            s.memory[s.pointers.memory] = key.charCodeAt(0);
+            callback();
+        });
+    }
+}
+
+/**
+ * Executes brainfuck source. Will pull from stdin and print to stdout where required. Here be side effects.
+ *
+ * @param {String} source A brainfuck application.
+ */
+function run(source) {
+    var state = getInitialState(source);
+    var command;
+
+    function isProgramPointerInBounds() {
+        return state.pointers.program < source.length;
+    }
+
+    function step(callback) {
+        command = commands[source[state.pointers.program]];
+
+        if (typeof command === 'function') {
+            command(state, callback);
+        }
+
+        state.pointers.program += 1;
+
+        if (!command || command.length < 2) {
+            setImmediate(callback);
+        }
+    }
+
+    function complete() {}
+
+    async.whilst(isProgramPointerInBounds, step, complete);
+}
+```
+
+So this works, but doesn't allow piping in. That's kind of important. And it's slow.
