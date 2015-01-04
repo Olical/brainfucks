@@ -1,6 +1,6 @@
 [Oliver Caldwell's][author] collection of [brainfuck][] interpreter implementations in various languages. This is a learning exercise that will be continually [documented][blog].
 
-All of the interpreters have the same interface, you simply execute them with a file path as their first argument. That file will be executed as a brainfuck application.
+All of the interpreters have the same interface, you simply execute them with a file path as their first argument, that file will be executed as a brainfuck application. You can populate stdin though pipes or typing during execution.
 
 ## Unlicenced
 

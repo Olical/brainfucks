@@ -6,13 +6,17 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Oliver Caldwell",
+  "author": {
+    "name": "Oliver Caldwell",
+    "email": "olliec87@gmail.com",
+    "url": "http://oli.me.uk/"
+  },
   "license": "Unlicense",
   "dependencies": {
-    "async": "^0.9.0"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/Wolfy87/EventEmitter.git"
-  }
+  },
+  "readmeFilename": "README.md"
 }
