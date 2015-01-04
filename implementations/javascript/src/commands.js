@@ -1,46 +1,89 @@
+var pipedInput = [];
+
+/**
+ * Performs the first read from stdin and stores it in pipedInput.
+ *
+ * readOne will later shift values from the front of that string before attempting to read anything new.
+ */
+function initialiseStdin() {
+    process.stdin.resume();
+    process.stdin.setEncoding('utf8');
+
+    if (process.stdin.isTTY) {
+        process.stdin.setRawMode(true);
+    }
+    else {
+        process.stdin.once('data', function(data) {
+            pipedInput = data.split('').slice(0, -1);
+        });
+    }
+}
+
+initialiseStdin();
+
+/**
+ * Reads one character from stdin and passes it back to the callback.
+ *
+ * @param {Function} callback
+ */
+function readOne(callback) {
+    var pipedCharacter = pipedInput.shift();
+
+    if (pipedCharacter) {
+        setImmediate(callback.bind(null, pipedCharacter));
+    }
+    else {
+        process.stdin.once('data', function(data) {
+            callback(data);
+        });
+    }
+}
+
 /**
 * Provides a map between brainfuck commands and the functions that the state should subsequently be applied to.
 *
 * @type {Object}
 */
 module.exports = {
-    '>': function (s) {
-        s.pointers.memory += 1;
-        if (s.pointers.memory === s.memory.length) {
-            s.memory.push(0);
+    '>': function (state) {
+        state.pointers.memory += 1;
+
+        if (state.pointers.memory === state.memory.length) {
+            state.memory.push(0);
         }
     },
-    '<': function (s) {
-        s.pointers.memory -= 1;
-        if (s.pointers.memory === -1) {
-            s.memory.unshift(0);
-            s.pointers.memory = 0;
+    '<': function (state) {
+        state.pointers.memory -= 1;
+
+        if (state.pointers.memory === -1) {
+            state.memory.unshift(0);
+            state.pointers.memory = 0;
         }
     },
-    '+': function (s) {
-        s.memory[s.pointers.memory] += 1;
+    '+': function (state) {
+        state.memory[state.pointers.memory] += 1;
     },
-    '-': function (s) {
-        s.memory[s.pointers.memory] -= 1;
+    '-': function (state) {
+        state.memory[state.pointers.memory] -= 1;
     },
-    '.': function (s) {
-        var c = String.fromCharCode(s.memory[s.pointers.memory]);
-        process.stdout.write(c);
+    '.': function (state) {
+        var character = String.fromCharCode(state.memory[state.pointers.memory]);
+        process.stdout.write(character);
     },
-    ',': function (s, callback) {
-        process.stdin.once('data', function (key) {
-            s.memory[s.pointers.memory] = key.charCodeAt(0);
+    ',': function (state, program, callback) {
+        readOne(function (character) {
+            state.memory[state.pointers.memory] = character.charCodeAt(0);
             callback();
         });
     },
-    '[': function (s) {
-        if (s.memory[s.pointers.memory] === 0) {
-            s.pointers.program = s.jumps[s.pointers.program];
+    '[': function (state, program) {
+        if (state.memory[state.pointers.memory] === 0) {
+            state.pointers.program = program.jumps[state.pointers.program];
         }
     },
-    ']': function (s) {
-        if (s.memory[s.pointers.memory] !== 0) {
-            s.pointers.program = s.jumps[s.pointers.program];
+    ']': function (state, program) {
+        if (state.memory[state.pointers.memory] !== 0) {
+            state.pointers.program = program.jumps[state.pointers.program];
         }
     }
 };

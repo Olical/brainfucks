@@ -13,6 +13,7 @@
   },
   "license": "Unlicense",
   "dependencies": {
+    "async": "^0.9.0"
   },
   "repository": {
     "type": "git",
