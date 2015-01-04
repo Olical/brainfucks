@@ -6,13 +6,13 @@ var pipedInput = [];
  * readOne will later shift values from the front of that string before attempting to read anything new.
  */
 function initialiseStdin() {
-    process.stdin.resume();
     process.stdin.setEncoding('utf8');
 
     if (process.stdin.isTTY) {
         process.stdin.setRawMode(true);
     }
     else {
+        process.stdin.resume();
         process.stdin.once('data', function(data) {
             pipedInput = data.split('').slice(0, -1);
         });
@@ -33,6 +33,7 @@ function readOne(callback) {
         setImmediate(callback.bind(null, pipedCharacter));
     }
     else {
+        process.stdin.resume();
         process.stdin.once('data', function(data) {
             callback(data);
         });
