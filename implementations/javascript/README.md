@@ -1,6 +1,6 @@
 This is the JavaScript reference implementation of my brainfuck interpreters. Install dependencies with `npm install` and execute with `./brainfuck.js [file]`.
 
-My initial attempt (860a93d643) was very dumb and synchronous, I want this second attempt to use immutable data structures and better asynchronous flow control. It got too stringy, so I'm going to rely on some libraries that make JavaScript slightly more bearable.
+My initial attempt (860a93d643) was very dumb and synchronous, it got too stringy, so I'm going to rely on some libraries that make JavaScript slightly more bearable.
 
 ## Application flow
 

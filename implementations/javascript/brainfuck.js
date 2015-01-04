@@ -12,7 +12,7 @@ function main() {
 
     if (sourcePath) {
         if (sourcePath && fs.existsSync(sourcePath)) {
-            source = fs.readFileSync(sourcePath);
+            source = fs.readFileSync(sourcePath, 'utf-8');
             var program = parse(source);
 
             if (program.ok) {
