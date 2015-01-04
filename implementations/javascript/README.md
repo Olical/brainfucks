@@ -1,3 +1,10 @@
 This is the JavaScript reference implementation of my brainfuck interpreters. Install dependencies with `npm install` and execute with `./brainfuck.js [file]`.
 
-My initial attempt was very dumb and synchronous, I want this second attempt to use immutable structures and better flow control. It got too stringy, so I'm going to rely on some libraries that make JavaScript slightly more bearable.
+My initial attempt (860a93d643) was very dumb and synchronous, I want this second attempt to use immutable data structures and better asynchronous flow control. It got too stringy, so I'm going to rely on some libraries that make JavaScript slightly more bearable.
+
+## Application flow
+
+ * Validate and read in file. Die early if something's wrong.
+ * Tokenise the contents into an array of valid tokens.
+ * Parse the tokens into an immutable state map. This will include a jump list.
+ * Iterate though the code applying the operation and jumping where required.
