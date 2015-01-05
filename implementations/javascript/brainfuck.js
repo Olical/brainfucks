@@ -23,7 +23,7 @@ function main() {
             }
         }
         else {
-            console.error('"' + sourcePath + '" does not exist or is not readable.');
+            console.error('"' + sourcePath + '" does not exist.');
         }
     }
     else {
