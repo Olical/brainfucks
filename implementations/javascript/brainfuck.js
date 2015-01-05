@@ -11,7 +11,7 @@ function main() {
     var sourcePath = process.argv[2];
 
     if (sourcePath) {
-        if (sourcePath && fs.existsSync(sourcePath)) {
+        if (fs.existsSync(sourcePath)) {
             source = fs.readFileSync(sourcePath, 'utf-8');
             var program = parse(source);
 
