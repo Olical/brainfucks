@@ -1,6 +1,5 @@
 (ns brainfuck.core)
 
-(defn foo
-  "I don't do a whole lot."
+(defn -main
   [x]
-  (println x "Hello, World!"))
+  (println (char (.read System/in))))
