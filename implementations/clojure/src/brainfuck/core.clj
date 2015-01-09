@@ -1,4 +1,5 @@
-(ns brainfuck.core)
+(ns brainfuck.core
+  (:import [jline.console ConsoleReader]))
 
 (defn file-exists? [path]
   "Checks if a file exists by path."
@@ -54,9 +55,11 @@
       tokenise
       match-braces))
 
-(defn read-character [_]
+(def console-reader (ConsoleReader.))
+
+(defn read-character []
   "Reads a character from STDIN"
-  (.read System/in))
+  (.readCharacter console-reader))
 
 (defn safe-inc [n]
   "Treat nil values as zero."
@@ -66,17 +69,22 @@
   "Treat nil values as zero."
   (dec (if (= n nil) 0 n)))
 
+(defn current-memory-zero? [state]
+  "Returns true if the current memory item of the state is 0."
+  (let [value (get-in state [:memory (:memory-pointer state)])]
+    (= 0 (if (= nil value) 0 value))))
+
 (defmulti step (fn [program state] (:token (nth program (:program-pointer state)))))
 (defmethod step \> [program state] (update-in state [:memory-pointer] inc))
 (defmethod step \< [program state] (update-in state [:memory-pointer] dec))
 (defmethod step \+ [program state] (update-in state [:memory (:memory-pointer state)] safe-inc))
 (defmethod step \- [program state] (update-in state [:memory (:memory-pointer state)] safe-dec))
-(defmethod step \. [program state] (print (char (get-in state [:memory (:memory-pointer state)]))) state)
-(defmethod step \, [program state] (update-in state [:memory (:memory-pointer state)] read-character))
-(defmethod step \[ [program state] (if (= 0 (get-in state [:memory (:memory-pointer state)]))
+(defmethod step \. [program state] (print (char (get-in state [:memory (:memory-pointer state)]))) (flush) state)
+(defmethod step \, [program state] (assoc-in state [:memory (:memory-pointer state)] (read-character)))
+(defmethod step \[ [program state] (if (current-memory-zero? state)
                                      (update-in state [:program-pointer] #(:destination (nth program %)))
                                      state))
-(defmethod step \] [program state] (if (not (= 0 (get-in state [:memory (:memory-pointer state)])))
+(defmethod step \] [program state] (if (not (current-memory-zero? state))
                                      (update-in state [:program-pointer] #(:destination (nth program %)))
                                      state))
 
