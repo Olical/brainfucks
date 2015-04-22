@@ -2,6 +2,22 @@
 
 All of the interpreters have the same interface, you simply execute them with a file path as their first argument, that file will be executed as a brainfuck application. You can populate stdin though pipes or typing during execution.
 
+ * [X] JavaScript
+ * [X] Clojure
+ * [ ] Ruby
+ * [ ] Io
+ * [ ] Prolog
+ * [ ] Scala
+ * [ ] Erlang
+ * [ ] Haskell
+ * [ ] Lua
+ * [ ] Factor
+ * [ ] Elm
+ * [ ] Elixir
+ * [ ] Julia
+ * [ ] miniKanren
+ * [ ] Idris
+
 ## Unlicenced
 
 Find the full [unlicense][] in the `UNLICENSE` file, but here's a snippet.
