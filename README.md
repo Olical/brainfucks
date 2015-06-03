@@ -10,13 +10,6 @@ All of the interpreters have the same interface, you simply execute them with a 
  * [ ] Scala
  * [ ] Erlang
  * [ ] Haskell
- * [ ] Lua
- * [ ] Factor
- * [ ] Elm
- * [ ] Elixir
- * [ ] Julia
- * [ ] miniKanren
- * [ ] Idris
 
 ## Unlicenced
 
