@@ -1,22 +1,10 @@
-[Oliver Caldwell's][author] collection of [brainfuck][] interpreter implementations in various languages. This is a learning exercise that will be continually [documented][blog].
+My collection of [brainfuck][] interpreter implementations in various languages. This is a learning exercise that is partially [documented][blog] on my blog.
 
 All of the interpreters have the same interface, you simply execute them with a file path as their first argument, that file will be executed as a brainfuck application. You can populate stdin though pipes or typing during execution.
 
  * [X] JavaScript
  * [X] Clojure
- * [ ] Ruby
- * [ ] Io
- * [ ] Prolog
- * [ ] Scala
- * [ ] Erlang
- * [ ] Haskell
- * [ ] Lua
- * [ ] Factor
- * [ ] Elm
- * [ ] Elixir
- * [ ] Julia
- * [ ] miniKanren
- * [ ] Idris
+ * [ ] Rust
 
 ## Unlicenced
 
@@ -28,7 +16,6 @@ Find the full [unlicense][] in the `UNLICENSE` file, but here's a snippet.
 
 Do what you want. Learn as much as you can. Unlicense more software.
 
-[author]: http://oli.me.uk/
 [brainfuck]: http://en.wikipedia.org/wiki/Brainfuck
-[blog]: http://oli.me.uk/category/brainfuck/
+[blog]: https://oli.me.uk/category/brainfuck/
 [unlicense]: http://unlicense.org/
