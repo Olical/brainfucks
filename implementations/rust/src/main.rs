@@ -20,7 +20,7 @@ fn main() {
 }
 
 mod brainfuck {
-    pub type Pointer = u32;
+    pub type Pointer = usize;
 
     #[derive(PartialEq)]
     #[derive(Debug)]
@@ -32,22 +32,54 @@ mod brainfuck {
         OutputValue,
         InputValue,
         ForwardsTo(Pointer),
-        BackwardsTo(Pointer)
+        BackwardsTo(Pointer),
     }
 
     #[derive(PartialEq)]
     #[derive(Debug)]
     pub enum ReadResult {
         Program(Vec<Command>),
-        UnmatchedJump
+        UnmatchedJump,
     }
 
     pub fn read(source: &str) -> ReadResult {
-        let mut program: Vec<Command> = vec![];
+        let mut loops: Vec<usize> = vec![];
+        let mut loop_closes: usize = 0;
+        let mut position: usize = 0;
+        let program: Vec<Command> = source
+            .chars()
+            .filter_map(|token| {
+                let command = match token {
+                    '>' => Some(Command::IncrementPointer),
+                    '<' => Some(Command::DecrementPointer),
+                    '+' => Some(Command::IncrementValue),
+                    '-' => Some(Command::DecrementValue),
+                    '.' => Some(Command::OutputValue),
+                    ',' => Some(Command::InputValue),
+                    '[' => {
+                        loops.push(position);
+                        Some(Command::BackwardsTo(position))
+                    }
+                    ']' => {
+                        loop_closes += 1;
+                        Some(Command::ForwardsTo(position))
+                    }
+                    _ => None,
+                };
 
-        // find braces first
+                if command.is_some() {
+                    position += 1;
+                }
 
-        return ReadResult::Program(program)
+                command
+            })
+            .collect();
+
+        if loops.len() != loop_closes {
+            ReadResult::UnmatchedJump
+        } else {
+            ReadResult::Program(program)
+        }
     }
 
     // pub fn eval(program: Vec<Command>) {
@@ -71,20 +103,18 @@ mod tests {
     #[test]
     fn read_simple() {
         let source = "+>-<.,<.-+>,";
-        let expected = Program(vec![
-            IncrementValue,
-            IncrementPointer,
-            DecrementValue,
-            DecrementPointer,
-            OutputValue,
-            InputValue,
-            DecrementPointer,
-            OutputValue,
-            DecrementValue,
-            IncrementValue,
-            IncrementPointer,
-            InputValue
-        ]);
+        let expected = Program(vec![IncrementValue,
+                                    IncrementPointer,
+                                    DecrementValue,
+                                    DecrementPointer,
+                                    OutputValue,
+                                    InputValue,
+                                    DecrementPointer,
+                                    OutputValue,
+                                    DecrementValue,
+                                    IncrementValue,
+                                    IncrementPointer,
+                                    InputValue]);
         let actual = read(source);
         assert_eq!(expected, actual);
     }
@@ -92,15 +122,13 @@ mod tests {
     #[test]
     fn read_garbage() {
         let source = ",.+lol,hey.>there<";
-        let expected = Program(vec![
-            InputValue,
-            OutputValue,
-            IncrementValue,
-            InputValue,
-            OutputValue,
-            IncrementPointer,
-            DecrementPointer
-        ]);
+        let expected = Program(vec![InputValue,
+                                    OutputValue,
+                                    IncrementValue,
+                                    InputValue,
+                                    OutputValue,
+                                    IncrementPointer,
+                                    DecrementPointer]);
         let actual = read(source);
         assert_eq!(expected, actual);
     }
@@ -108,14 +136,12 @@ mod tests {
     #[test]
     fn read_loop() {
         let source = "[->+<]";
-        let expected = Program(vec![
-            ForwardsTo(5),
-            DecrementValue,
-            IncrementPointer,
-            IncrementValue,
-            DecrementPointer,
-            BackwardsTo(0)
-        ]);
+        let expected = Program(vec![ForwardsTo(5),
+                                    DecrementValue,
+                                    IncrementPointer,
+                                    IncrementValue,
+                                    DecrementPointer,
+                                    BackwardsTo(0)]);
         let actual = read(source);
         assert_eq!(expected, actual);
     }
