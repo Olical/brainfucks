@@ -35,6 +35,7 @@ mod brainfuck {
         BackwardsTo(Pointer),
     }
 
+    // TODO: Just use result.
     #[derive(PartialEq)]
     #[derive(Debug)]
     pub enum ReadResult {
@@ -157,4 +158,11 @@ mod tests {
         let actual = read(source);
         assert_eq!(expected, actual);
     }
+
+    // #[test]
+    // fn eval_empty() {
+    //     let program = vec![];
+    //     eval(program);
+    //     assert_eq!(expected, output)
+    // }
 }
