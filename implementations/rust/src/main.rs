@@ -20,8 +20,6 @@ fn main() {
 }
 
 mod brainfuck {
-    pub type Pointer = usize;
-
     #[derive(PartialEq)]
     #[derive(Debug)]
     pub enum Command {
@@ -31,22 +29,14 @@ mod brainfuck {
         DecrementValue,
         OutputValue,
         InputValue,
-        ForwardsTo(Pointer),
-        BackwardsTo(Pointer),
+        ForwardsTo(usize),
+        BackwardsTo(usize),
     }
 
-    // TODO: Just use result.
-    #[derive(PartialEq)]
-    #[derive(Debug)]
-    pub enum ReadResult {
-        Program(Vec<Command>),
-        UnmatchedJump,
-    }
-
-    pub fn read(source: &str) -> ReadResult {
-        let mut forward_pointers: Vec<Pointer> = vec![];
-        let mut backward_pointers: Vec<Pointer> = vec![];
-        let mut position: Pointer = 0;
+    pub fn read(source: &str) -> Result<Vec<Command>, &'static str> {
+        let mut forward_pointers: Vec<usize> = vec![];
+        let mut backward_pointers: Vec<usize> = vec![];
+        let mut position: usize = 0;
         let mut program: Vec<Command> = source
             .chars()
             .filter_map(|token| {
@@ -81,9 +71,9 @@ mod brainfuck {
                 program.swap(*a, b)
             }
 
-            ReadResult::Program(program)
+            Ok(program)
         } else {
-            ReadResult::UnmatchedJump
+            Err("Found an unmatched square brace.")
         }
     }
 
@@ -95,68 +85,82 @@ mod brainfuck {
 mod tests {
     use brainfuck::*;
     use brainfuck::Command::*;
-    use brainfuck::ReadResult::*;
 
     #[test]
     fn read_empty() {
         let source = "";
-        let expected = Program(vec![]);
-        let actual = read(source);
-        assert_eq!(expected, actual);
+        let expected: Vec<Command> = vec![];
+
+        match read(source) {
+            Ok(actual) => assert_eq!(expected, actual),
+            Err(_) => assert!(false),
+        };
     }
 
     #[test]
     fn read_simple() {
         let source = "+>-<.,<.-+>,";
-        let expected = Program(vec![IncrementValue,
-                                    IncrementPointer,
-                                    DecrementValue,
-                                    DecrementPointer,
-                                    OutputValue,
-                                    InputValue,
-                                    DecrementPointer,
-                                    OutputValue,
-                                    DecrementValue,
-                                    IncrementValue,
-                                    IncrementPointer,
-                                    InputValue]);
-        let actual = read(source);
-        assert_eq!(expected, actual);
+        let expected = vec![IncrementValue,
+                            IncrementPointer,
+                            DecrementValue,
+                            DecrementPointer,
+                            OutputValue,
+                            InputValue,
+                            DecrementPointer,
+                            OutputValue,
+                            DecrementValue,
+                            IncrementValue,
+                            IncrementPointer,
+                            InputValue];
+
+        match read(source) {
+            Ok(actual) => assert_eq!(expected, actual),
+            Err(_) => assert!(false),
+        };
     }
 
     #[test]
     fn read_garbage() {
         let source = ",.+lol,hey.>there<";
-        let expected = Program(vec![InputValue,
-                                    OutputValue,
-                                    IncrementValue,
-                                    InputValue,
-                                    OutputValue,
-                                    IncrementPointer,
-                                    DecrementPointer]);
-        let actual = read(source);
-        assert_eq!(expected, actual);
+        let expected = vec![InputValue,
+                            OutputValue,
+                            IncrementValue,
+                            InputValue,
+                            OutputValue,
+                            IncrementPointer,
+                            DecrementPointer];
+
+        match read(source) {
+            Ok(actual) => assert_eq!(expected, actual),
+            Err(_) => assert!(false),
+        };
     }
 
     #[test]
     fn read_loop() {
         let source = "[->+<]";
-        let expected = Program(vec![ForwardsTo(5),
-                                    DecrementValue,
-                                    IncrementPointer,
-                                    IncrementValue,
-                                    DecrementPointer,
-                                    BackwardsTo(0)]);
-        let actual = read(source);
-        assert_eq!(expected, actual);
+        let expected = vec![ForwardsTo(5),
+                            DecrementValue,
+                            IncrementPointer,
+                            IncrementValue,
+                            DecrementPointer,
+                            BackwardsTo(0)];
+
+        match read(source) {
+            Ok(actual) => assert_eq!(expected, actual),
+            Err(_) => assert!(false),
+        };
     }
 
     #[test]
     fn read_bad_loop() {
         let source = "[,.[,.>+-][./.[]]";
-        let expected = UnmatchedJump;
-        let actual = read(source);
-        assert_eq!(expected, actual);
+        let expected = "Found an unmatched square brace.";
+
+        match read(source) {
+            Ok(_) => assert!(false),
+            Err(actual) => assert_eq!(expected, actual),
+        };
     }
 
     // #[test]
