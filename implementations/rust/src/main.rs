@@ -43,10 +43,10 @@ mod brainfuck {
     }
 
     pub fn read(source: &str) -> ReadResult {
-        let mut loops: Vec<usize> = vec![];
-        let mut loop_closes: usize = 0;
-        let mut position: usize = 0;
-        let program: Vec<Command> = source
+        let mut forward_pointers: Vec<Pointer> = vec![];
+        let mut backward_pointers: Vec<Pointer> = vec![];
+        let mut position: Pointer = 0;
+        let mut program: Vec<Command> = source
             .chars()
             .filter_map(|token| {
                 let command = match token {
@@ -57,25 +57,29 @@ mod brainfuck {
                     '.' => Some(Command::OutputValue),
                     ',' => Some(Command::InputValue),
                     '[' => {
-                        loops.push(position);
+                        forward_pointers.push(position);
                         Some(Command::BackwardsTo(position))
                     }
                     ']' => {
-                        loop_closes += 1;
+                        backward_pointers.push(position);
                         Some(Command::ForwardsTo(position))
                     }
                     _ => None,
                 };
 
                 if command.is_some() {
-                    position += 1;
+                    position += 1
                 }
 
                 command
             })
             .collect();
 
-        if loops.len() == loop_closes {
+        if forward_pointers.len() == backward_pointers.len() {
+            for (a, b) in forward_pointers.iter().zip(backward_pointers) {
+                program.swap(*a, b)
+            }
+
             ReadResult::Program(program)
         } else {
             ReadResult::UnmatchedJump
