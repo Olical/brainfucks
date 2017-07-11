@@ -75,10 +75,10 @@ mod brainfuck {
             })
             .collect();
 
-        if loops.len() != loop_closes {
-            ReadResult::UnmatchedJump
-        } else {
+        if loops.len() == loop_closes {
             ReadResult::Program(program)
+        } else {
+            ReadResult::UnmatchedJump
         }
     }
 
