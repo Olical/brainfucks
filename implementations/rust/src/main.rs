@@ -1,4 +1,5 @@
 use std::env;
+use std::io;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -8,7 +9,19 @@ fn main() {
         match File::open(path) {
             Ok(mut file) => {
                 match file.read_to_string(&mut contents) {
-                    Ok(_) => println!("Would read and eval here."),
+                    Ok(_) => {
+                        match brainfuck::read(&contents) {
+                            Ok(program) => {
+                                let stdio = io::stdin();
+                                let input = stdio.lock();
+                                let output = io::stdout();
+                                brainfuck::eval(program, input, output);
+                            }
+                            Err(msg) => {
+                                println!("Read the file, but could not parse it: {}", msg)
+                            }
+                        }
+                    }
                     Err(_) => println!("Found the file but failed to read it."),
                 }
             }
@@ -20,6 +33,8 @@ fn main() {
 }
 
 mod brainfuck {
+    use std::io::{BufRead, Write};
+
     #[derive(PartialEq)]
     #[derive(Debug)]
     pub enum Command {
@@ -77,14 +92,59 @@ mod brainfuck {
         }
     }
 
-    // pub fn eval(program: Vec<Command>) {
-    // }
+    pub fn eval<R, W>(program: Vec<Command>, mut reader: R, mut writer: W)
+        where R: BufRead,
+              W: Write
+    {
+        let mut memory: Vec<i8> = vec![0; 30000];
+        let mut mem_pointer: usize = 0;
+        let mut prog_pointer: usize = 0;
+        let prog_len = program.len();
+
+        while prog_pointer < prog_len {
+            match program[prog_pointer] {
+                Command::IncrementPointer => {
+                    mem_pointer += 1;
+                }
+                Command::DecrementPointer => {
+                    mem_pointer -= 1;
+                }
+                Command::IncrementValue => {
+                    memory[mem_pointer] += 1;
+                }
+                Command::DecrementValue => {
+                    memory[mem_pointer] -= 1;
+                }
+                Command::OutputValue => {
+                    write!(&mut writer, "{}", memory[mem_pointer]).expect("Unable to write");
+                }
+                Command::InputValue => {
+                    let mut input = String::new();
+                    reader.read_line(&mut input).expect("Unable to read");
+                    memory[mem_pointer] = input.as_bytes()[0] as i8;
+                }
+                Command::ForwardsTo(next) => {
+                    if memory[mem_pointer] == 0 {
+                        prog_pointer = next;
+                    }
+                }
+                Command::BackwardsTo(next) => {
+                    if memory[mem_pointer] != 0 {
+                        prog_pointer = next;
+                    }
+                }
+            };
+
+            prog_pointer += 1;
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use brainfuck::*;
     use brainfuck::Command::*;
+    use std::io::Cursor;
 
     #[test]
     fn read_empty() {
@@ -163,10 +223,35 @@ mod tests {
         };
     }
 
-    // #[test]
-    // fn eval_empty() {
-    //     let program = vec![];
-    //     eval(program);
-    //     assert_eq!(expected, output)
-    // }
+    #[test]
+    fn eval_empty() {
+        let input = Cursor::new(&b""[..]);
+        let mut output = Cursor::new(vec![]);
+
+        match read("") {
+            Ok(program) => eval(program, input, &mut output),
+            Err(_) => assert!(false),
+        }
+
+        let expected = "";
+        let actual = String::from_utf8(output.into_inner()).expect("Not UTF-8");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn eval_cat() {
+        let input = Cursor::new(&b"Hello, World!"[..]);
+        let mut output = Cursor::new(vec![]);
+
+        match read(",[.,]") {
+            Ok(program) => eval(program, input, &mut output),
+            Err(_) => assert!(false),
+        }
+
+        let expected = "Hello, World!";
+        let actual = String::from_utf8(output.into_inner()).expect("Not UTF-8");
+
+        assert_eq!(expected, actual);
+    }
 }
