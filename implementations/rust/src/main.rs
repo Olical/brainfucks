@@ -91,20 +91,20 @@ mod brainfuck {
         }
     }
 
-    fn write_byte<W>(mut writer: W, byte: u8)
+    fn write_byte<W>(mut writer: W, byte: i32)
         where W: Write
     {
-        write!(&mut writer, "{}", byte as char).expect("Unable to write");
+        write!(&mut writer, "{}", byte as u8 as char).expect("Unable to write");
     }
 
-    fn read_byte<R>(reader: R) -> u8
+    fn read_byte<R>(reader: R) -> i32
         where R: Read
     {
         reader
             .bytes()
             .next()
             .and_then(|result| result.ok())
-            .map(|byte| byte as u8)
+            .map(|byte| byte as i32)
             .unwrap_or(0)
     }
 
@@ -112,7 +112,7 @@ mod brainfuck {
         where R: Read,
               W: Write
     {
-        let mut memory: Vec<u8> = vec![0; 30000];
+        let mut memory: Vec<i32> = vec![0; 30000];
         let mut mem_pointer: usize = 0;
         let mut prog_pointer: usize = 0;
         let prog_len = program.len();
