@@ -17,9 +17,7 @@ fn main() {
                                 let output = io::stdout();
                                 brainfuck::eval(program, input, output);
                             }
-                            Err(msg) => {
-                                println!("Read the file, but could not parse it: {}", msg)
-                            }
+                            Err(msg) => println!("Read the file, but could not parse it: {}", msg),
                         }
                     }
                     Err(_) => println!("Found the file but failed to read it."),
@@ -92,11 +90,17 @@ mod brainfuck {
         }
     }
 
+    fn write_byte<W>(mut writer: W, byte: u8)
+        where W: Write
+    {
+        write!(&mut writer, "{}", byte as char).expect("Unable to write");
+    }
+
     pub fn eval<R, W>(program: Vec<Command>, mut reader: R, mut writer: W)
         where R: BufRead,
               W: Write
     {
-        let mut memory: Vec<i8> = vec![0; 30000];
+        let mut memory: Vec<u8> = vec![0; 30000];
         let mut mem_pointer: usize = 0;
         let mut prog_pointer: usize = 0;
         let prog_len = program.len();
@@ -116,12 +120,12 @@ mod brainfuck {
                     memory[mem_pointer] -= 1;
                 }
                 Command::OutputValue => {
-                    write!(&mut writer, "{}", memory[mem_pointer]).expect("Unable to write");
+                    write_byte(&mut writer, memory[mem_pointer]);
                 }
                 Command::InputValue => {
                     let mut input = String::new();
                     reader.read_line(&mut input).expect("Unable to read");
-                    memory[mem_pointer] = input.as_bytes()[0] as i8;
+                    memory[mem_pointer] = input.as_bytes()[0] as u8;
                 }
                 Command::ForwardsTo(next) => {
                     if memory[mem_pointer] == 0 {
@@ -234,6 +238,22 @@ mod tests {
         }
 
         let expected = "";
+        let actual = String::from_utf8(output.into_inner()).expect("Not UTF-8");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn eval_new_line() {
+        let input = Cursor::new(&b""[..]);
+        let mut output = Cursor::new(vec![]);
+
+        match read("++++++++++.") {
+            Ok(program) => eval(program, input, &mut output),
+            Err(_) => assert!(false),
+        }
+
+        let expected = "\n";
         let actual = String::from_utf8(output.into_inner()).expect("Not UTF-8");
 
         assert_eq!(expected, actual);
