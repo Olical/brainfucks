@@ -31,7 +31,8 @@ fn main() {
 }
 
 mod brainfuck {
-    use std::io::{BufRead, Write};
+    use std::io::{Read, Write}
+;
 
     #[derive(PartialEq)]
     #[derive(Debug)]
@@ -96,8 +97,19 @@ mod brainfuck {
         write!(&mut writer, "{}", byte as char).expect("Unable to write");
     }
 
+    fn read_byte<R>(reader: R) -> u8
+        where R: Read
+    {
+        reader
+            .bytes()
+            .next()
+            .and_then(|result| result.ok())
+            .map(|byte| byte as u8)
+            .unwrap_or(0)
+    }
+
     pub fn eval<R, W>(program: Vec<Command>, mut reader: R, mut writer: W)
-        where R: BufRead,
+        where R: Read,
               W: Write
     {
         let mut memory: Vec<u8> = vec![0; 30000];
@@ -123,9 +135,7 @@ mod brainfuck {
                     write_byte(&mut writer, memory[mem_pointer]);
                 }
                 Command::InputValue => {
-                    let mut input = String::new();
-                    reader.read_line(&mut input).expect("Unable to read");
-                    memory[mem_pointer] = input.as_bytes()[0] as u8;
+                    memory[mem_pointer] = read_byte(&mut reader);
                 }
                 Command::ForwardsTo(next) => {
                     if memory[mem_pointer] == 0 {
@@ -133,6 +143,7 @@ mod brainfuck {
                     }
                 }
                 Command::BackwardsTo(next) => {
+                    println!("<- {}", next);
                     if memory[mem_pointer] != 0 {
                         prog_pointer = next;
                     }
