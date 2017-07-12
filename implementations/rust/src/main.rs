@@ -143,7 +143,6 @@ mod brainfuck {
                     }
                 }
                 Command::BackwardsTo(next) => {
-                    println!("<- {}", next);
                     if memory[mem_pointer] != 0 {
                         prog_pointer = next;
                     }
@@ -276,6 +275,22 @@ mod tests {
         let mut output = Cursor::new(vec![]);
 
         match read(",[.,]") {
+            Ok(program) => eval(program, input, &mut output),
+            Err(_) => assert!(false),
+        }
+
+        let expected = "Hello, World!";
+        let actual = String::from_utf8(output.into_inner()).expect("Not UTF-8");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn eval_hello_world() {
+        let input = Cursor::new(&b""[..]);
+        let mut output = Cursor::new(vec![]);
+
+        match read("--------[>+>+++++>-->-->--->++++>------<<<<<<<-------]>.>---.>----..>-.>++++.>.>+++++++.<<<.+++.<.<-.>>>>+.") {
             Ok(program) => eval(program, input, &mut output),
             Err(_) => assert!(false),
         }
