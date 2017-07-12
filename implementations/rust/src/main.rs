@@ -81,7 +81,7 @@ mod brainfuck {
             .collect();
 
         if forward_pointers.len() == backward_pointers.len() {
-            for (a, b) in forward_pointers.iter().zip(backward_pointers) {
+            for (a, b) in forward_pointers.iter().rev().zip(backward_pointers) {
                 program.swap(*a, b)
             }
 
@@ -243,9 +243,7 @@ mod tests {
         let expected = vec![ForwardsTo(3),
                             ForwardsTo(2),
                             BackwardsTo(1),
-                            BackwardsTo(0),
-                            ForwardsTo(5),
-                            BackwardsTo(4)];
+                            BackwardsTo(0)];
 
         match read(source) {
             Ok(actual) => assert_eq!(expected, actual),
