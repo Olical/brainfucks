@@ -48,8 +48,9 @@ mod brainfuck {
     }
 
     pub fn read(source: &str) -> Result<Vec<Command>, &'static str> {
-        let mut forward_pointers: Vec<usize> = vec![];
-        let mut backward_pointers: Vec<usize> = vec![];
+        let mut jumps: Vec<usize> = vec![];
+        let mut swaps: Vec<(usize, usize)> = vec![];
+        let mut extra_close = false;
         let mut position: usize = 0;
         let mut program: Vec<Command> = source
             .chars()
@@ -62,12 +63,20 @@ mod brainfuck {
                     '.' => Some(Command::OutputValue),
                     ',' => Some(Command::InputValue),
                     '[' => {
-                        forward_pointers.push(position);
+                        jumps.push(position);
                         Some(Command::BackwardsTo(position))
                     }
                     ']' => {
-                        backward_pointers.push(position);
-                        Some(Command::ForwardsTo(position))
+                        match jumps.pop() {
+                            Some(jump) => {
+                                swaps.push((jump, position));
+                                Some(Command::ForwardsTo(position))
+                            },
+                            None => {
+                                extra_close = true;
+                                None
+                            }
+                        }
                     }
                     _ => None,
                 };
@@ -80,14 +89,16 @@ mod brainfuck {
             })
             .collect();
 
-        if forward_pointers.len() == backward_pointers.len() {
-            for (a, b) in forward_pointers.iter().rev().zip(backward_pointers) {
-                program.swap(*a, b)
+        if jumps.len() > 0 {
+            Err("Too many open braces")
+        } else if extra_close {
+            Err("Too many close braces")
+        } else {
+            for (a, b) in swaps {
+                program.swap(a, b)
             }
 
             Ok(program)
-        } else {
-            Err("Found an unmatched square brace.")
         }
     }
 
@@ -227,9 +238,20 @@ mod tests {
     }
 
     #[test]
-    fn read_bad_loop() {
+    fn read_too_many_opens() {
         let source = "[,.[,.>+-][./.[]]";
-        let expected = "Found an unmatched square brace.";
+        let expected = "Too many open braces";
+
+        match read(source) {
+            Ok(_) => assert!(false),
+            Err(actual) => assert_eq!(expected, actual),
+        };
+    }
+
+    #[test]
+    fn read_too_many_closes() {
+        let source = "[,.[,.>+-][./.[]]]]]]";
+        let expected = "Too many close braces";
 
         match read(source) {
             Ok(_) => assert!(false),
