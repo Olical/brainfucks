@@ -238,6 +238,22 @@ mod tests {
     }
 
     #[test]
+    fn read_nested_loops() {
+        let source = "[[]]";
+        let expected = vec![ForwardsTo(3),
+                            ForwardsTo(2),
+                            BackwardsTo(1),
+                            BackwardsTo(0),
+                            ForwardsTo(5),
+                            BackwardsTo(4)];
+
+        match read(source) {
+            Ok(actual) => assert_eq!(expected, actual),
+            Err(_) => assert!(false),
+        };
+    }
+
+    #[test]
     fn eval_empty() {
         let input = Cursor::new(&b""[..]);
         let mut output = Cursor::new(vec![]);
