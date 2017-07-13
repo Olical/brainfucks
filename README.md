@@ -4,7 +4,7 @@ All of the interpreters have the same interface, you simply execute them with a 
 
  * [X] JavaScript
  * [X] Clojure
- * [ ] Rust
+ * [X] Rust
 
 ## Unlicenced
 
