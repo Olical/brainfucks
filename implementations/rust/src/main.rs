@@ -31,8 +31,7 @@ fn main() {
 }
 
 mod brainfuck {
-    use std::io::{Read, Write}
-;
+    use std::io::{Read, Write};
 
     #[derive(PartialEq)]
     #[derive(Debug)]
@@ -71,7 +70,7 @@ mod brainfuck {
                             Some(jump) => {
                                 swaps.push((jump, position));
                                 Some(Command::ForwardsTo(position))
-                            },
+                            }
                             None => {
                                 extra_close = true;
                                 None
@@ -262,10 +261,7 @@ mod tests {
     #[test]
     fn read_nested_loops() {
         let source = "[[]]";
-        let expected = vec![ForwardsTo(3),
-                            ForwardsTo(2),
-                            BackwardsTo(1),
-                            BackwardsTo(0)];
+        let expected = vec![ForwardsTo(3), ForwardsTo(2), BackwardsTo(1), BackwardsTo(0)];
 
         match read(source) {
             Ok(actual) => assert_eq!(expected, actual),
