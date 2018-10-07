@@ -4,30 +4,21 @@ use std::fs::File;
 use std::io::prelude::*;
 
 fn main() {
-    if let Some(path) = env::args().nth(1) {
-        let mut contents = String::new();
-        match File::open(path) {
-            Ok(mut file) => {
-                match file.read_to_string(&mut contents) {
-                    Ok(_) => {
-                        match brainfuck::read(&contents) {
-                            Ok(program) => {
-                                let stdio = io::stdin();
-                                let input = stdio.lock();
-                                let output = io::stdout();
-                                brainfuck::eval(program, input, output);
-                            }
-                            Err(msg) => println!("Read the file, but could not parse it: {}", msg),
-                        }
-                    }
-                    Err(_) => println!("Found the file but failed to read it."),
-                }
-            }
-            Err(_) => println!("Failed to open the file for reading."),
-        };
-    } else {
-        println!("Please provide a path to some brainfuck source as the first argument.")
-    }
+    let path = env::args()
+        .nth(1)
+        .expect("provide a path to some brainfuck source as the first argument");
+
+    let mut contents = String::new();
+    let mut file = File::open(path).expect("failed to open the file for reading");
+    file.read_to_string(&mut contents)
+        .expect("found the file but failed to read it");
+
+    let program = brainfuck::read(&contents).expect("read the file, but could not parse it");
+
+    let stdio = io::stdin();
+    let input = stdio.lock();
+    let output = io::stdout();
+    brainfuck::eval(program, input, output);
 }
 
 mod brainfuck {
